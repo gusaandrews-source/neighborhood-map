@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Line</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#14171C;
+    --bg-panel:#1C2027;
+    --bg-panel-2:#252A32;
+    --bg-panel-3:#2E343D;
+    --track:#333A44;
+    --gold:#E3A63D;
+    --text-primary:#EDEEF0;
+    --text-secondary:#9198A6;
+    --text-faint:#5B6270;
+    --restaurant:#E3A63D;
+    --restaurant-bg:#3A2E17;
+    --bar:#C97B93;
+    --bar-bg:#392530;
+    --fancy:#8E9EE8;
+    --fancy-bg:#242A44;
+    --date:#DD7259;
+    --date-bg:#3A2620;
+    --font-display:'Archivo Black', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg-void);
+    color:var(--text-primary);
+    font-family:var(--font-body);
+    min-height:100vh;
+    padding-bottom:80px;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:0 20px;}
+
+  header{padding:40px 0 28px;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-size:34px;
+    line-height:1.05;
+    margin:0 0 10px;
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+  }
+  .sub{color:var(--text-secondary);font-size:14.5px;line-height:1.55;margin:0;max-width:52ch;}
+
+  .stats{
+    display:flex;gap:22px;margin-top:22px;padding-top:20px;border-top:1px solid var(--track);
+  }
+  .stat .n{font-family:var(--font-mono);font-size:20px;color:var(--gold);}
+  .stat .l{font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.06em;}
+
+  .toolbar{display:flex;gap:10px;margin:26px 0 8px;flex-wrap:wrap;align-items:center;}
+  select, input[type=text]{
+    background:var(--bg-panel-2);
+    border:1px solid var(--track);
+    color:var(--text-primary);
+    font-family:var(--font-body);
+    font-size:13.5px;
+    padding:9px 12px;
+    border-radius:7px;
+    outline:none;
+  }
+  select:focus, input[type=text]:focus{border-color:var(--gold);}
+  .add-stop-btn{
+    margin-left:auto;
+    background:var(--gold);
+    color:#1B1300;
+    border:none;
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:13.5px;
+    padding:9px 16px;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .add-stop-btn:hover{opacity:0.9;}
+
+  .line{position:relative;margin-top:20px;}
+  .spine{
+    position:absolute;left:15px;top:6px;bottom:6px;width:2px;background:var(--track);
+  }
+
+  .stop{position:relative;padding-left:46px;margin-bottom:14px;}
+  .marker{
+    position:absolute;left:6px;top:14px;width:20px;height:20px;border-radius:50%;
+    background:var(--bg-panel);border:3px solid var(--gold);z-index:1;
+  }
+  .stop-card{
+    background:var(--bg-panel);border:1px solid var(--track);border-radius:12px;overflow:hidden;
+  }
+  .stop-head{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;
+  }
+  .stop-name{font-weight:600;font-size:16px;flex:1;}
+  .stop-count{font-family:var(--font-mono);font-size:12px;color:var(--text-faint);}
+  .chev{color:var(--text-faint);transition:transform 0.15s;font-size:12px;}
+  .stop.open .chev{transform:rotate(90deg);}
+  .stop-body{display:none;border-top:1px solid var(--track);padding:14px 16px 16px;}
+  .stop.open .stop-body{display:block;}
+
+  .cat-group{margin-bottom:16px;}
+  .cat-group:last-child{margin-bottom:0;}
+  .cat-label{
+    font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    margin-bottom:8px;display:flex;align-items:center;gap:7px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+  .place{
+    padding:10px 10px;border-radius:8px;
+    background:var(--bg-panel-2);margin-bottom:6px;
+  }
+  .place-top{display:flex;align-items:flex-start;gap:10px;}
+  .place-main{flex:1;min-width:0;}
+  .place-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .place-name{font-size:14px;font-weight:500;}
+  .place-cat-badge{
+    font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:0.04em;
+    padding:2px 6px;border-radius:5px;
+  }
+  .place-address{font-size:12px;color:var(--text-faint);margin-top:2px;}
+  .place-notes{font-size:12.5px;color:var(--text-secondary);margin-top:4px;line-height:1.4;}
+  .place-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+  .tag-chip{
+    font-size:11px;background:var(--bg-panel-3);color:var(--text-secondary);
+    padding:2px 8px;border-radius:10px;display:flex;align-items:center;gap:4px;
+  }
+  .tag-chip button{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:12px;padding:0;line-height:1;}
+  .tag-chip button:hover{color:var(--date);}
+  .add-tag-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center;}
+  .add-tag-row input{font-size:11.5px;padding:4px 8px;width:110px;}
+  .quick-tag{
+    font-size:11px;background:none;border:1px dashed var(--track);color:var(--text-faint);
+    padding:2px 8px;border-radius:10px;cursor:pointer;
+  }
+  .quick-tag:hover{border-color:var(--gold);color:var(--gold);}
+
+  .scores{display:flex;flex-direction:column;gap:4px;margin-top:8px;}
+  .score-row{display:flex;align-items:center;gap:8px;}
+  .score-label{font-size:11px;color:var(--text-faint);width:70px;flex-shrink:0;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.03em;}
+  .stars{display:flex;gap:2px;}
+  .star{cursor:pointer;font-size:14px;color:var(--track);}
+  .star.filled{color:var(--gold);}
+  .score-total{
+    font-family:var(--font-mono);font-size:12px;color:var(--gold);
+  }
+  .score-total-row{display:flex;align-items:center;gap:10px;margin-top:4px;}
+  .reset-score-btn{
+    background:none;border:none;color:var(--text-faint);font-size:11px;cursor:pointer;
+    font-family:var(--font-body);text-decoration:underline;padding:0;
+  }
+  .reset-score-btn:hover{color:var(--date);}
+  .badge-want{
+    font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);
+    border:1px solid var(--track);padding:2px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:0.04em;
+    display:inline-block;margin-top:6px;
+  }
+
+  .place-controls{display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;}
+  .cat-select{
+    font-size:11px;padding:4px 6px;background:var(--bg-panel-3);border:1px solid var(--track);
+    color:var(--text-primary);border-radius:6px;
+  }
+  .del-btn{
+    background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;
+  }
+  .del-btn:hover{color:var(--date);}
+  .dist-label{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);}
+
+  .empty-cat{font-size:12.5px;color:var(--text-faint);font-style:italic;}
+
+  .add-place-form{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--track);
+  }
+  .add-place-form input, .add-place-form select{width:100%;}
+  .add-place-form .full{grid-column:1/-1;}
+  .add-place-submit{
+    grid-column:1/-1;background:var(--bg-panel-3);border:1px solid var(--track);color:var(--text-primary);
+    font-family:var(--font-body);font-size:13px;padding:9px;border-radius:7px;cursor:pointer;
+  }
+  .add-place-submit:hover{border-color:var(--gold);color:var(--gold);}
+
+  .del-stop-btn{
+    background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:12px;
+    font-family:var(--font-mono);
+  }
+  .del-stop-btn:hover{color:var(--date);}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-faint);}
+  .empty-state p{font-size:14px;line-height:1.6;max-width:36ch;margin:8px auto 0;}
+
+  .new-stop-row{display:flex;gap:8px;margin-bottom:16px;}
+  .new-stop-row input{flex:1;}
+
+  ::placeholder{color:var(--text-faint);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow" id="dateLabel">Personal transit log</p>
+    <h1>The Line</h1>
+    <p class="sub">One stop at a time. Log the spots worth trying, score the ones you've been to, and keep building the map as you cover more ground.</p>
+    <div class="stats">
+      <div class="stat"><div class="n" id="statStops">0</div><div class="l">Stops</div></div>
+      <div class="stat"><div class="n" id="statVisited">0</div><div class="l">Visited</div></div>
+      <div class="stat"><div class="n" id="statWant">0</div><div class="l">Want to try</div></div>
+    </div>
+  </header>
+
+  <div class="new-stop-row">
+    <input type="text" id="newStopInput" placeholder="Add an L stop or neighborhood, e.g. Logan Square" />
+    <button class="add-stop-btn" id="addStopBtn">Add stop</button>
+  </div>
+
+  <div class="toolbar">
+    <select id="filterCategory">
+      <option value="all">All categories</option>
+      <option value="Restaurant">Restaurants</option>
+      <option value="Bar">Bars</option>
+      <option value="Fancy Dinner">Fancy dinner</option>
+      <option value="Date Spot">Date spots</option>
+    </select>
+    <select id="filterStatus">
+      <option value="all">All statuses</option>
+      <option value="visited">Visited</option>
+      <option value="want-to-try">Want to try</option>
+    </select>
+    <select id="sortBy">
+      <option value="category">Group by category</option>
+      <option value="score">Sort by total score</option>
+      <option value="price">Sort by price score</option>
+      <option value="taste">Sort by taste score</option>
+      <option value="vibes">Sort by vibes score</option>
+      <option value="tags">Sort by tags</option>
+      <option value="distance">Sort by distance to stop</option>
+      <option value="name">Sort by name</option>
+    </select>
+  </div>
+
+  <div class="line" id="lineContainer">
+    <div class="spine" id="spine"></div>
+  </div>
+
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="eyebrow" style="text-align:center;">No stops yet</div>
+    <p>Add your first stop above to start mapping the neighborhood, then add restaurants, bars, and everything else underneath it.</p>
+  </div>
+</div>
+
+<script>
+const CATS = {
+  'Restaurant': {color:'var(--restaurant)', bg:'var(--restaurant-bg)'},
+  'Bar': {color:'var(--bar)', bg:'var(--bar-bg)'},
+  'Fancy Dinner': {color:'var(--fancy)', bg:'var(--fancy-bg)'},
+  'Date Spot': {color:'var(--date)', bg:'var(--date-bg)'}
+};
+const CAT_ORDER = Object.keys(CATS);
+const STANDARD_TAGS = ['Restaurant','Bar','Fancy Dinner','Date Spot'];
+const STORAGE_KEY = 'neighborhood-map-data-v2';
+const OLD_STORAGE_KEY = 'neighborhood-map-data';
+
+const SEED_PLACES = [{name:"Delilahs",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9323607,lng:-87.658008},{name:"Will's Northwoods",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9373026,lng:-87.659058},{name:"Beermiscuous",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9328491,lng:-87.6594335},{name:"Four Shadows",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9323137,lng:-87.6687497},{name:"Side Street Saloon",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9344422,lng:-87.6658588},{name:"Red Lion Pub",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.926315,lng:-87.650437},{name:"Irish Eyes",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9277108,lng:-87.6516544},{name:"Lily's Bar",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.927639,lng:-87.6515712},{name:"Rose's Lounge",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9301722,lng:-87.6555886},{name:"Kirkwood",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9354712,lng:-87.6542734},{name:"Broken Barrell",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.928522,lng:-87.6636322},{name:"Bird's Nest",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9272209,lng:-87.6635035},{name:"Liar's Club",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.925056,lng:-87.6706744},{name:"Southport Betty's",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9342053,lng:-87.6637479},{name:"Augies",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.928653,lng:-87.6715997},{name:"Vaughan's Pub",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9350285,lng:-87.6538123},{name:"Lincoln Taproom",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9364203,lng:-87.66431},{name:"Olive Black",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9367954,lng:-87.6649886},{name:"George Street Pub",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9344164,lng:-87.649244},{name:"Harrigan's",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9332827,lng:-87.6491648},{name:"Clover Lincoln Park",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9328165,lng:-87.6495215},{name:"Barcocina",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.934715,lng:-87.6535894},{name:"Love Street",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9287466,lng:-87.6620551},{name:"Avli Taverna",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9287926,lng:-87.6624029},{name:"The Monkey's Paw",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9278827,lng:-87.6635992},{name:"Farm Bar",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9363595,lng:-87.6613826},{name:"Sal's Trattoria",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9335508,lng:-87.6637693},{name:"Pour Decisions",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9294894,lng:-87.6547364},{name:"Que Rico",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9330081,lng:-87.6637479},{name:"Hotate Sushi",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9326276,lng:-87.6640965},{name:"Southport Taqueria",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9323722,lng:-87.6636942},{name:"Gotham Bagels",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9330308,lng:-87.6589507},{name:"Lou Malnati's",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.929206,lng:-87.653567},{name:"Szechuan Corner",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.934467,lng:-87.66915},{name:"El Presidente",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9286397,lng:-87.6684526},{name:"Sushi Payce",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9250525,lng:-87.6640177},{name:"Royal Highness Zhu",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.924943,lng:-87.6591276},{name:"Nori's Sushi",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.932823,lng:-87.6536044},{name:"Andy's Thai",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.932789,lng:-87.6534328},{name:"Rosati's Pizza",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.932384,lng:-87.6534033},{name:"Zizi's Turkish Cafe",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9333674,lng:-87.6536044},{name:"Tanuki sushi",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9365702,lng:-87.6542077},{name:"Panes Bread Cafe (LUNCH)",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9364685,lng:-87.6541219},{name:"Giordano's",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9402846,lng:-87.655822},{name:"Al's #1 Beef",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9441006,lng:-87.6540195},{name:"S&G Restaurant",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9362946,lng:-87.6641223},{name:"Golden Apple",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9360192,lng:-87.663213},{name:"Rica Arepa",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9348027,lng:-87.6616007},{name:"Mahanakhon Thai",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9347174,lng:-87.66136},{name:"Redhot Cafe",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9377474,lng:-87.6684234},{name:"Taco Maya",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9376576,lng:-87.6682298},{name:"The Art of Pizza",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9371608,lng:-87.6680956},{name:"Breakfast House",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9361786,lng:-87.6681919},{name:"Tutto Fresco",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9343464,lng:-87.6681505},{name:"Jono Sushi",category:"Fancy Dinner",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9298167,lng:-87.6551977}];
+const SEED_HOME = {lat:41.9324622,lng:-87.6594105};
+const IMPORT_BATCH_2 = [{name:"Gunny's",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9298795,lng:-87.6552815},{name:"Prost!",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9284303,lng:-87.6532223},{name:"Pat's Pizza & Ristorante",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9308482,lng:-87.6558444},{name:"Nadu",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275203,lng:-87.6519187},{name:"Taste of China",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275473,lng:-87.6515165},{name:"Verzenay (BRUNCH)",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275103,lng:-87.6513459},{name:"Happy Burger",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9269158,lng:-87.6510188}];
+
+let data = { stops: [], customTags: [] };
+let openStops = new Set();
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function haversine(lat1, lng1, lat2, lng2){
+  const R = 3958.8;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function scoreTotal(place){
+  const s = place.scores || {price:0,taste:0,vibes:0};
+  return (s.price||0) + (s.taste||0) + (s.vibes||0);
+}
+
+function normalizePlace(p){
+  if(!p.scores){
+    p.scores = { price:0, taste: p.rating || 0, vibes:0 };
+  }
+  if(p.tags === undefined) p.tags = [];
+  if(p.address === undefined) p.address = '';
+  if(p.notes === undefined) p.notes = '';
+  return p;
+}
+
+async function loadData(){
+  let hadExisting = false;
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      data = JSON.parse(res.value);
+      hadExisting = true;
+    }
+  }catch(e){}
+
+  if(!hadExisting){
+    try{
+      const old = await window.storage.get(OLD_STORAGE_KEY, false);
+      if(old && old.value){
+        const oldData = JSON.parse(old.value);
+        data = { stops: (oldData.stops || []).map(s => ({
+          id: s.id, name: s.name, lat: s.lat, lng: s.lng,
+          places: (s.places || []).filter(p => p.category !== 'Church').map(normalizePlace)
+        })), customTags: [] };
+        hadExisting = true;
+        await saveData();
+      }
+    }catch(e){}
+  }
+
+  if(!hadExisting){
+    const diversey = {
+      id: uid(), name: 'Diversey', lat: SEED_HOME.lat, lng: SEED_HOME.lng,
+      places: SEED_PLACES.map(p => ({ id: uid(), ...p }))
+    };
+    data = { stops: [diversey], customTags: [], importedBatches: [] };
+    openStops.add(diversey.id);
+  } else {
+    data.stops.forEach(s => s.places.forEach(normalizePlace));
+    if(!data.customTags) data.customTags = [];
+  }
+  if(!data.importedBatches) data.importedBatches = [];
+  mergeImportBatch('batch2', IMPORT_BATCH_2);
+  await saveData();
+  render();
+}
+
+function mergeImportBatch(batchId, batchPlaces){
+  if(data.importedBatches.includes(batchId)) return;
+  let stop = data.stops.find(s => s.name === 'Diversey') || data.stops[0];
+  if(!stop){
+    stop = { id: uid(), name: 'Diversey', lat: SEED_HOME.lat, lng: SEED_HOME.lng, places: [] };
+    data.stops.push(stop);
+    openStops.add(stop.id);
+  }
+  const existingNames = new Set(stop.places.map(p => p.name.trim().toLowerCase()));
+  batchPlaces.forEach(p => {
+    if(existingNames.has(p.name.trim().toLowerCase())) return;
+    stop.places.push({ id: uid(), ...p });
+  });
+  data.importedBatches.push(batchId);
+}
+
+async function saveData(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(data), false);
+  }catch(e){
+    console.error('Storage error', e);
+  }
+}
+
+document.getElementById('dateLabel').textContent = new Date().toLocaleDateString('en-US', {month:'long', year:'numeric'}) + ' — personal transit log';
+
+document.getElementById('addStopBtn').addEventListener('click', addStop);
+document.getElementById('newStopInput').addEventListener('keydown', e => { if(e.key === 'Enter') addStop(); });
+document.getElementById('filterCategory').addEventListener('change', render);
+document.getElementById('filterStatus').addEventListener('change', render);
+document.getElementById('sortBy').addEventListener('change', render);
+
+function addStop(){
+  const input = document.getElementById('newStopInput');
+  const name = input.value.trim();
+  if(!name) return;
+  const stop = { id: uid(), name, places: [] };
+  data.stops.push(stop);
+  openStops.add(stop.id);
+  input.value = '';
+  saveData();
+  render();
+}
+
+function deleteStop(stopId){
+  data.stops = data.stops.filter(s => s.id !== stopId);
+  saveData();
+  render();
+}
+
+function addPlace(stopId, formEl){
+  const stop = data.stops.find(s => s.id === stopId);
+  if(!stop) return;
+  const name = formEl.querySelector('.f-name').value.trim();
+  const category = formEl.querySelector('.f-category').value;
+  const address = formEl.querySelector('.f-address').value.trim();
+  const status = formEl.querySelector('.f-status').value;
+  const notes = formEl.querySelector('.f-notes').value.trim();
+  if(!name) return;
+  stop.places.push({
+    id: uid(), name, category, address, status, notes,
+    tags: [], scores: {price:0, taste:0, vibes:0}
+  });
+  saveData();
+  render();
+}
+
+function deletePlace(stopId, placeId){
+  const stop = data.stops.find(s => s.id === stopId);
+  if(!stop) return;
+  stop.places = stop.places.filter(p => p.id !== placeId);
+  saveData();
+  render();
+}
+
+function findPlace(stopId, placeId){
+  const stop = data.stops.find(s => s.id === stopId);
+  if(!stop) return null;
+  return stop.places.find(p => p.id === placeId);
+}
+
+function setScore(stopId, placeId, dim, val){
+  const place = findPlace(stopId, placeId);
+  if(!place) return;
+  place.scores[dim] = val;
+  place.status = 'visited';
+  saveData();
+  render();
+}
+
+function resetScore(stopId, placeId){
+  const place = findPlace(stopId, placeId);
+  if(!place) return;
+  place.scores = { price: 0, taste: 0, vibes: 0 };
+  place.status = 'want-to-try';
+  saveData();
+  render();
+}
+
+function setCategory(stopId, placeId, cat){
+  const place = findPlace(stopId, placeId);
+  if(!place) return;
+  place.category = cat;
+  saveData();
+  render();
+}
+
+function addTag(stopId, placeId, tag){
+  const place = findPlace(stopId, placeId);
+  if(!place || !tag) return;
+  tag = tag.trim();
+  if(!tag) return;
+  if(!place.tags.includes(tag)) place.tags.push(tag);
+  if(!STANDARD_TAGS.includes(tag) && !data.customTags.includes(tag)){
+    data.customTags.push(tag);
+  }
+  saveData();
+  render();
+}
+
+function removeTag(stopId, placeId, tag){
+  const place = findPlace(stopId, placeId);
+  if(!place) return;
+  place.tags = place.tags.filter(t => t !== tag);
+  saveData();
+  render();
+}
+
+function toggleStop(stopId){
+  if(openStops.has(stopId)) openStops.delete(stopId);
+  else openStops.add(stopId);
+  render();
+}
+
+function renderStars(stopId, place, dim){
+  const val = place.scores[dim] || 0;
+  let html = '<div class="stars">';
+  for(let i=1;i<=5;i++){
+    const filled = val >= i ? 'filled' : '';
+    html += `<span class="star ${filled}" data-stop="${stopId}" data-place="${place.id}" data-dim="${dim}" data-val="${i}">&#9733;</span>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderPlace(stop, place){
+  const pEl = document.createElement('div');
+  pEl.className = 'place';
+  const catInfo = CATS[place.category] || CATS['Restaurant'];
+
+  let distHtml = '';
+  if(typeof stop.lat === 'number' && typeof place.lat === 'number'){
+    const d = haversine(stop.lat, stop.lng, place.lat, place.lng);
+    distHtml = `<span class="dist-label">${d < 0.1 ? '<0.1' : d.toFixed(1)} mi</span>`;
+  }
+
+  const catOptions = CAT_ORDER.map(c => `<option value="${c}" ${c===place.category?'selected':''}>${c}</option>`).join('');
+
+  const scoresHtml = place.status === 'visited' ? `
+    <div class="scores">
+      <div class="score-row"><span class="score-label">Price</span>${renderStars(stop.id, place, 'price')}</div>
+      <div class="score-row"><span class="score-label">Taste</span>${renderStars(stop.id, place, 'taste')}</div>
+      <div class="score-row"><span class="score-label">Vibes</span>${renderStars(stop.id, place, 'vibes')}</div>
+    </div>
+    <div class="score-total-row">
+      <span class="score-total">${scoreTotal(place)}/15</span>
+      ${scoreTotal(place) > 0 ? `<button class="reset-score-btn" data-stop="${stop.id}" data-place="${place.id}">Reset score</button>` : ''}
+    </div>
+  ` : `
+    <span class="badge-want">Want to try</span>
+    <div class="scores" style="margin-top:6px;">
+      <div class="score-row"><span class="score-label">Price</span>${renderStars(stop.id, place, 'price')}</div>
+      <div class="score-row"><span class="score-label">Taste</span>${renderStars(stop.id, place, 'taste')}</div>
+      <div class="score-row"><span class="score-label">Vibes</span>${renderStars(stop.id, place, 'vibes')}</div>
+    </div>
+  `;
+
+  const tagsHtml = place.tags.map(t => `<span class="tag-chip">${escapeHtml(t)}<button data-stop="${stop.id}" data-place="${place.id}" data-tag="${escapeHtml(t)}" class="rm-tag">&times;</button></span>`).join('');
+
+  const quickTags = STANDARD_TAGS.filter(t => t !== place.category && !place.tags.includes(t))
+    .map(t => `<button class="quick-tag" data-stop="${stop.id}" data-place="${place.id}" data-tag="${t}">+ ${t}</button>`).join('');
+
+  pEl.innerHTML = `
+    <div class="place-top">
+      <div class="place-main">
+        <div class="place-name-row">
+          <span class="place-name">${escapeHtml(place.name)}</span>
+          <span class="place-cat-badge" style="background:${catInfo.bg};color:${catInfo.color}">${place.category}</span>
+          ${distHtml}
+        </div>
+        ${place.address ? `<div class="place-address">${escapeHtml(place.address)}</div>` : ''}
+        ${place.notes ? `<div class="place-notes">${escapeHtml(place.notes)}</div>` : ''}
+        <div class="place-tags">${tagsHtml}</div>
+        <div class="add-tag-row">
+          ${quickTags}
+          <input type="text" class="new-tag-input" placeholder="+ custom tag" data-stop="${stop.id}" data-place="${place.id}">
+        </div>
+        ${scoresHtml}
+      </div>
+      <div class="place-controls">
+        <button class="del-btn" data-stop="${stop.id}" data-place="${place.id}" title="Remove">&times;</button>
+        <select class="cat-select" data-stop="${stop.id}" data-place="${place.id}">${catOptions}</select>
+      </div>
+    </div>
+  `;
+  return pEl;
+}
+
+function sortPlaces(places, sortMode, stop){
+  const arr = [...places];
+  switch(sortMode){
+    case 'score': return arr.sort((a,b) => scoreTotal(b) - scoreTotal(a));
+    case 'price': return arr.sort((a,b) => (b.scores.price||0) - (a.scores.price||0));
+    case 'taste': return arr.sort((a,b) => (b.scores.taste||0) - (a.scores.taste||0));
+    case 'vibes': return arr.sort((a,b) => (b.scores.vibes||0) - (a.scores.vibes||0));
+    case 'tags': return arr.sort((a,b) => (a.tags.join(',')||'zzz').localeCompare(b.tags.join(',')||'zzz') || a.name.localeCompare(b.name));
+    case 'name': return arr.sort((a,b) => a.name.localeCompare(b.name));
+    case 'distance': return arr.sort((a,b) => {
+      const da = (typeof stop.lat === 'number' && typeof a.lat === 'number') ? haversine(stop.lat, stop.lng, a.lat, a.lng) : Infinity;
+      const db = (typeof stop.lat === 'number' && typeof b.lat === 'number') ? haversine(stop.lat, stop.lng, b.lat, b.lng) : Infinity;
+      return da - db;
+    });
+    default: return arr;
+  }
+}
+
+function render(){
+  const stats = { stops: data.stops.length, visited: 0, want: 0 };
+  data.stops.forEach(s => s.places.forEach(p => {
+    if(p.status === 'visited') stats.visited++; else stats.want++;
+  }));
+  document.getElementById('statStops').textContent = stats.stops;
+  document.getElementById('statVisited').textContent = stats.visited;
+  document.getElementById('statWant').textContent = stats.want;
+
+  const container = document.getElementById('lineContainer');
+  const emptyState = document.getElementById('emptyState');
+  const filterCat = document.getElementById('filterCategory').value;
+  const filterStatus = document.getElementById('filterStatus').value;
+  const sortMode = document.getElementById('sortBy').value;
+
+  container.innerHTML = '<div class="spine" id="spine"></div>';
+
+  if(data.stops.length === 0){
+    emptyState.style.display = 'block';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  data.stops.forEach(stop => {
+    const isOpen = openStops.has(stop.id);
+    const stopEl = document.createElement('div');
+    stopEl.className = 'stop' + (isOpen ? ' open' : '');
+
+    const marker = document.createElement('div');
+    marker.className = 'marker';
+    stopEl.appendChild(marker);
+
+    const card = document.createElement('div');
+    card.className = 'stop-card';
+
+    const head = document.createElement('div');
+    head.className = 'stop-head';
+    head.innerHTML = `
+      <span class="chev">&#9656;</span>
+      <span class="stop-name">${escapeHtml(stop.name)}</span>
+      <span class="stop-count">${stop.places.length} spot${stop.places.length===1?'':'s'}</span>
+    `;
+    head.addEventListener('click', () => toggleStop(stop.id));
+    card.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className = 'stop-body';
+
+    let places = stop.places.filter(p => {
+      if(filterCat !== 'all' && p.category !== filterCat) return false;
+      if(filterStatus !== 'all' && p.status !== filterStatus) return false;
+      return true;
+    });
+
+    if(sortMode === 'category'){
+      CAT_ORDER.forEach(cat => {
+        if(filterCat !== 'all' && filterCat !== cat) return;
+        const catPlaces = places.filter(p => p.category === cat);
+        const group = document.createElement('div');
+        group.className = 'cat-group';
+        const label = document.createElement('div');
+        label.className = 'cat-label';
+        label.style.color = CATS[cat].color;
+        label.innerHTML = `<span class="dot" style="background:${CATS[cat].color}"></span>${cat}s`;
+        group.appendChild(label);
+
+        if(catPlaces.length === 0){
+          const emptyP = document.createElement('div');
+          emptyP.className = 'empty-cat';
+          emptyP.textContent = 'None yet';
+          group.appendChild(emptyP);
+        } else {
+          const sorted = [...catPlaces].sort((a,b) => {
+            if(a.status === b.status) return scoreTotal(b) - scoreTotal(a);
+            return a.status === 'visited' ? -1 : 1;
+          });
+          sorted.forEach(place => group.appendChild(renderPlace(stop, place)));
+        }
+        body.appendChild(group);
+      });
+    } else {
+      const sorted = sortPlaces(places, sortMode, stop);
+      if(sorted.length === 0){
+        const emptyP = document.createElement('div');
+        emptyP.className = 'empty-cat';
+        emptyP.textContent = 'No spots match this filter';
+        body.appendChild(emptyP);
+      } else {
+        sorted.forEach(place => body.appendChild(renderPlace(stop, place)));
+      }
+    }
+
+    const form = document.createElement('div');
+    form.className = 'add-place-form';
+    form.innerHTML = `
+      <input type="text" class="f-name" placeholder="Place name">
+      <select class="f-category">
+        ${CAT_ORDER.map(c => `<option value="${c}">${c}</option>`).join('')}
+      </select>
+      <input type="text" class="f-address full" placeholder="Address (optional)">
+      <select class="f-status">
+        <option value="want-to-try">Want to try</option>
+        <option value="visited">Visited</option>
+      </select>
+      <input type="text" class="f-notes" placeholder="Notes (optional)">
+      <button class="add-place-submit full">Add to ${escapeHtml(stop.name)}</button>
+    `;
+    form.querySelector('.add-place-submit').addEventListener('click', () => addPlace(stop.id, form));
+    body.appendChild(form);
+
+    const footer = document.createElement('div');
+    footer.style.textAlign = 'right';
+    footer.style.marginTop = '14px';
+    footer.innerHTML = `<button class="del-stop-btn" data-stop="${stop.id}">Remove this stop</button>`;
+    body.appendChild(footer);
+
+    card.appendChild(body);
+    stopEl.appendChild(card);
+    container.appendChild(stopEl);
+  });
+
+  container.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); deletePlace(btn.dataset.stop, btn.dataset.place); });
+  });
+  container.querySelectorAll('.del-stop-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); deleteStop(btn.dataset.stop); });
+  });
+  container.querySelectorAll('.star').forEach(star => {
+    star.addEventListener('click', e => {
+      e.stopPropagation();
+      setScore(star.dataset.stop, star.dataset.place, star.dataset.dim, parseInt(star.dataset.val));
+    });
+  });
+  container.querySelectorAll('.reset-score-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); resetScore(btn.dataset.stop, btn.dataset.place); });
+  });
+  container.querySelectorAll('.cat-select').forEach(sel => {
+    sel.addEventListener('click', e => e.stopPropagation());
+    sel.addEventListener('change', e => { setCategory(sel.dataset.stop, sel.dataset.place, sel.value); });
+  });
+  container.querySelectorAll('.quick-tag').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); addTag(btn.dataset.stop, btn.dataset.place, btn.dataset.tag); });
+  });
+  container.querySelectorAll('.rm-tag').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); removeTag(btn.dataset.stop, btn.dataset.place, btn.dataset.tag); });
+  });
+  container.querySelectorAll('.new-tag-input').forEach(inp => {
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){
+        addTag(inp.dataset.stop, inp.dataset.place, inp.value);
+      }
+    });
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+loadData();
+</script>
+</body>
+</html>
