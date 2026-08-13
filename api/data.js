@@ -1,23 +1,16 @@
-// Save this file as /api/data.js in your Vercel project (create an /api folder at the
-// project root if it doesn't exist yet).
+// Save this file as /api/data.js in your Vercel project.
 //
-// Requires three environment variables, set in Vercel: Project Settings -> Environment Variables
+// Requires two environment variables, set in Vercel: Project Settings -> Environment Variables
 //   UPSTASH_REDIS_REST_URL     (from your Upstash Redis database)
 //   UPSTASH_REDIS_REST_TOKEN   (from your Upstash Redis database)
-//   APP_SECRET                 (a passcode you make up yourself, e.g. a random word/phrase)
 //
-// The APP_SECRET is what the passcode prompt on the site checks against — it's a simple
-// gate so random visitors can't read or overwrite your data. It is NOT sent to Upstash;
-// it only guards this API route.
+// No passcode required — anyone with your site's web address can view and edit
+// the data. Fine for a personal, low-stakes list; if you ever want it locked
+// down again, say so and I'll add the passcode back.
 
 const DATA_KEY = 'neighborhood-map-data';
 
 export default async function handler(req, res) {
-  const key = req.headers['x-app-key'];
-  if (!key || key !== process.env.APP_SECRET) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-
   const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
   const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
