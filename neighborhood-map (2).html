@@ -212,11 +212,20 @@
 </style>
 </head>
 <body>
+<div id="passGate" style="display:none;position:fixed;inset:0;background:rgba(20,23,28,0.96);z-index:50;align-items:center;justify-content:center;flex-direction:column;padding:20px;">
+  <div style="max-width:320px;text-align:center;">
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#E3A63D;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">Sync locked</p>
+    <p style="color:#9198A6;font-size:13.5px;line-height:1.5;margin-bottom:16px;" id="passGateMsg">Enter your passcode to load your synced data.</p>
+    <input type="password" id="passInput" placeholder="Passcode" style="width:100%;background:#252A32;border:1px solid #333A44;color:#EDEEF0;font-size:14px;padding:10px 12px;border-radius:7px;outline:none;margin-bottom:10px;">
+    <button id="passSubmit" style="width:100%;background:#E3A63D;color:#1B1300;border:none;font-weight:600;font-size:13.5px;padding:10px;border-radius:7px;cursor:pointer;">Unlock</button>
+  </div>
+</div>
 <div class="wrap">
   <header>
     <p class="eyebrow" id="dateLabel">Personal transit log</p>
     <h1>The Line</h1>
     <p class="sub">One stop at a time. Log the spots worth trying, score the ones you've been to, and keep building the map as you cover more ground.</p>
+    <div id="storageWarning" style="display:none;background:#3A2620;border:1px solid var(--date);color:#F0C4B8;font-size:12.5px;line-height:1.5;padding:10px 12px;border-radius:8px;margin-top:16px;"></div>
     <div class="stats">
       <div class="stat"><div class="n" id="statStops">0</div><div class="l">Stops</div></div>
       <div class="stat"><div class="n" id="statVisited">0</div><div class="l">Visited</div></div>
@@ -280,6 +289,78 @@ const SEED_PLACES = [{name:"Delilahs",category:"Bar",address:"",tags:[],status:"
 const SEED_HOME = {lat:41.9324622,lng:-87.6594105};
 const IMPORT_BATCH_2 = [{name:"Gunny's",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9298795,lng:-87.6552815},{name:"Prost!",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9284303,lng:-87.6532223},{name:"Pat's Pizza & Ristorante",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9308482,lng:-87.6558444},{name:"Nadu",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275203,lng:-87.6519187},{name:"Taste of China",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275473,lng:-87.6515165},{name:"Verzenay (BRUNCH)",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275103,lng:-87.6513459},{name:"Happy Burger",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9269158,lng:-87.6510188}];
 
+const API_BASE = '/api/data';
+let APP_KEY = '';
+try{ APP_KEY = localStorage.getItem('app-passcode') || ''; }catch(e){}
+let apiAvailable = null; // null = unknown, true/false once checked
+
+function showPassGate(msg){
+  const gate = document.getElementById('passGate');
+  document.getElementById('passGateMsg').textContent = msg || 'Enter your passcode to load your synced data.';
+  gate.style.display = 'flex';
+}
+function hidePassGate(){
+  document.getElementById('passGate').style.display = 'none';
+}
+
+async function apiRequest(method, body){
+  const res = await fetch(API_BASE, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'x-app-key': APP_KEY },
+    body: body !== undefined ? JSON.stringify(body) : undefined
+  });
+  if(res.status === 401){ const err = new Error('unauthorized'); err.code = 401; throw err; }
+  if(!res.ok){ const err = new Error('request failed'); err.code = res.status; throw err; }
+  return res.json();
+}
+
+const storageAdapter = {
+  async get(key){
+    try{
+      const json = await apiRequest('GET');
+      apiAvailable = true;
+      hidePassGate();
+      return json.value !== null && json.value !== undefined ? { value: json.value } : null;
+    }catch(e){
+      if(e.code === 401){
+        apiAvailable = true;
+        showPassGate();
+        throw e;
+      }
+      apiAvailable = false;
+    }
+    try{
+      const v = localStorage.getItem(key);
+      return v !== null ? { value: v } : null;
+    }catch(e){ return null; }
+  },
+  async set(key, value){
+    if(apiAvailable !== false){
+      try{
+        await apiRequest('POST', { value });
+        apiAvailable = true;
+        hidePassGate();
+        return { value };
+      }catch(e){
+        if(e.code === 401){ apiAvailable = true; showPassGate(); throw e; }
+        apiAvailable = false;
+      }
+    }
+    try{ localStorage.setItem(key, value); }catch(e){}
+    return { value };
+  }
+};
+
+document.getElementById('passSubmit').addEventListener('click', submitPasscode);
+document.getElementById('passInput').addEventListener('keydown', e => { if(e.key === 'Enter') submitPasscode(); });
+function submitPasscode(){
+  const val = document.getElementById('passInput').value.trim();
+  if(!val) return;
+  APP_KEY = val;
+  try{ localStorage.setItem('app-passcode', val); }catch(e){}
+  loadData();
+}
+
 let data = { stops: [], customTags: [] };
 let openStops = new Set();
 
@@ -311,9 +392,25 @@ function normalizePlace(p){
 }
 
 async function loadData(){
+  const warningEl = document.getElementById('storageWarning');
+  warningEl.style.display = 'none';
+
+  if(!APP_KEY){
+    showPassGate('Set a passcode to sync your data across devices. Use the same one everywhere.');
+    return;
+  }
+
+  try{
+    await storageAdapter.set('__healthcheck', String(Date.now()));
+  }catch(e){
+    if(e.code === 401) return; // gate is already shown by storageAdapter
+    warningEl.style.display = 'block';
+    warningEl.textContent = "Saving isn't syncing right now — your changes will only last on this device/browser.";
+  }
+
   let hadExisting = false;
   try{
-    const res = await window.storage.get(STORAGE_KEY, false);
+    const res = await storageAdapter.get(STORAGE_KEY);
     if(res && res.value){
       data = JSON.parse(res.value);
       hadExisting = true;
@@ -322,7 +419,7 @@ async function loadData(){
 
   if(!hadExisting){
     try{
-      const old = await window.storage.get(OLD_STORAGE_KEY, false);
+      const old = await storageAdapter.get(OLD_STORAGE_KEY);
       if(old && old.value){
         const oldData = JSON.parse(old.value);
         data = { stops: (oldData.stops || []).map(s => ({
@@ -370,7 +467,7 @@ function mergeImportBatch(batchId, batchPlaces){
 
 async function saveData(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(data), false);
+    await storageAdapter.set(STORAGE_KEY, JSON.stringify(data));
   }catch(e){
     console.error('Storage error', e);
   }
