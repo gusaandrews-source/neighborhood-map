@@ -1,8 +1,7 @@
 // Save this file as /api/data.js in your Vercel project.
 //
-// Requires two environment variables, set in Vercel: Project Settings -> Environment Variables
-//   UPSTASH_REDIS_REST_URL     (from your Upstash Redis database)
-//   UPSTASH_REDIS_REST_TOKEN   (from your Upstash Redis database)
+// Works automatically with the environment variables Vercel creates when you add
+// an Upstash Redis database from the Storage tab — no manual setup needed.
 //
 // No passcode required — anyone with your site's web address can view and edit
 // the data. Fine for a personal, low-stakes list; if you ever want it locked
@@ -11,8 +10,8 @@
 const DATA_KEY = 'neighborhood-map-data';
 
 export default async function handler(req, res) {
-  const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
-  const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
   if (!REDIS_URL || !REDIS_TOKEN) {
     return res.status(500).json({ error: 'Redis environment variables are not configured' });
