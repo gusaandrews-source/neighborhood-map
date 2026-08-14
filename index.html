@@ -205,8 +205,8 @@
   .empty-state{text-align:center;padding:60px 20px;color:var(--text-faint);}
   .empty-state p{font-size:14px;line-height:1.6;max-width:36ch;margin:8px auto 0;}
 
-  .new-stop-row{display:flex;gap:8px;margin-bottom:16px;}
-  .new-stop-row input{flex:1;}
+  .new-stop-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .new-stop-row input{flex:1;min-width:140px;}
 
   ::placeholder{color:var(--text-faint);}
 </style>
@@ -227,6 +227,7 @@
 
   <div class="new-stop-row">
     <input type="text" id="newStopInput" placeholder="Add an L stop or neighborhood, e.g. Logan Square" />
+    <input type="text" id="newStopAddress" placeholder="Nearby address (optional, enables distance)" />
     <button class="add-stop-btn" id="addStopBtn">Add stop</button>
   </div>
 
@@ -343,6 +344,17 @@ function scoreTotal(place){
   return (s.price||0) + (s.taste||0) + (s.vibes||0);
 }
 
+async function geocodeAddress(address){
+  if(!address) return null;
+  try{
+    const res = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
+    if(!res.ok) return null;
+    const json = await res.json();
+    if(typeof json.lat === 'number' && typeof json.lng === 'number') return json;
+    return null;
+  }catch(e){ return null; }
+}
+
 function normalizePlace(p){
   if(!p.scores){
     p.scores = { price:0, taste: p.rating || 0, vibes:0 };
@@ -403,6 +415,27 @@ async function loadData(){
   mergeImportBatch('batch2', IMPORT_BATCH_2);
   await saveData();
   render();
+  backfillCoordinates();
+}
+
+async function backfillCoordinates(){
+  let changed = false;
+  for(const stop of data.stops){
+    if(typeof stop.lat !== 'number' && stop.address){
+      const coords = await geocodeAddress(stop.address);
+      if(coords){ stop.lat = coords.lat; stop.lng = coords.lng; changed = true; }
+    }
+    for(const place of stop.places){
+      if(typeof place.lat !== 'number' && place.address){
+        const coords = await geocodeAddress(place.address);
+        if(coords){ place.lat = coords.lat; place.lng = coords.lng; changed = true; }
+      }
+    }
+  }
+  if(changed){
+    await saveData();
+    render();
+  }
 }
 
 function mergeImportBatch(batchId, batchPlaces){
@@ -437,16 +470,28 @@ document.getElementById('filterCategory').addEventListener('change', render);
 document.getElementById('filterStatus').addEventListener('change', render);
 document.getElementById('sortBy').addEventListener('change', render);
 
-function addStop(){
+async function addStop(){
   const input = document.getElementById('newStopInput');
+  const addressInput = document.getElementById('newStopAddress');
   const name = input.value.trim();
+  const address = addressInput.value.trim();
   if(!name) return;
-  const stop = { id: uid(), name, places: [] };
+  const stop = { id: uid(), name, address, places: [] };
   data.stops.push(stop);
   openStops.add(stop.id);
   input.value = '';
+  addressInput.value = '';
   saveData();
   render();
+  if(address){
+    const coords = await geocodeAddress(address);
+    if(coords){
+      stop.lat = coords.lat;
+      stop.lng = coords.lng;
+      saveData();
+      render();
+    }
+  }
 }
 
 function deleteStop(stopId){
@@ -455,7 +500,7 @@ function deleteStop(stopId){
   render();
 }
 
-function addPlace(stopId, formEl){
+async function addPlace(stopId, formEl){
   const stop = data.stops.find(s => s.id === stopId);
   if(!stop) return;
   const name = formEl.querySelector('.f-name').value.trim();
@@ -464,12 +509,22 @@ function addPlace(stopId, formEl){
   const status = formEl.querySelector('.f-status').value;
   const notes = formEl.querySelector('.f-notes').value.trim();
   if(!name) return;
-  stop.places.push({
+  const newPlace = {
     id: uid(), name, category, address, status, notes,
     tags: [], scores: {price:0, taste:0, vibes:0}
-  });
+  };
+  stop.places.push(newPlace);
   saveData();
   render();
+  if(address){
+    const coords = await geocodeAddress(address);
+    if(coords){
+      newPlace.lat = coords.lat;
+      newPlace.lng = coords.lng;
+      saveData();
+      render();
+    }
+  }
 }
 
 function deletePlace(stopId, placeId){
