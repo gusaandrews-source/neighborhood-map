@@ -284,8 +284,8 @@ const IMPORT_BATCH_2 = [{name:"Gunny's",category:"Bar",address:"",tags:[],status
 const API_BASE = '/api/data';
 let apiAvailable = null; // null = unknown, true/false once checked
 
-async function apiRequest(method, body){
-  const res = await fetch(API_BASE, {
+async function apiRequest(method, key, body){
+  const res = await fetch(`${API_BASE}?key=${encodeURIComponent(key)}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
     body: body !== undefined ? JSON.stringify(body) : undefined
@@ -297,7 +297,7 @@ async function apiRequest(method, body){
 const storageAdapter = {
   async get(key){
     try{
-      const json = await apiRequest('GET');
+      const json = await apiRequest('GET', key);
       apiAvailable = true;
       return json.value !== null && json.value !== undefined ? { value: json.value } : null;
     }catch(e){
@@ -311,7 +311,7 @@ const storageAdapter = {
   async set(key, value){
     if(apiAvailable !== false){
       try{
-        await apiRequest('POST', { value });
+        await apiRequest('POST', key, { value });
         apiAvailable = true;
         return { value };
       }catch(e){
