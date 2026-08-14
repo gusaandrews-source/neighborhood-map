@@ -181,7 +181,7 @@
     background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;
   }
   .del-btn:hover{color:var(--date);}
-  .dist-label{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);}
+  .dist-label{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);white-space:nowrap;}
 
   .empty-cat{font-size:12.5px;color:var(--text-faint);font-style:italic;}
 
@@ -252,6 +252,7 @@
       <option value="vibes">Sort by vibes score</option>
       <option value="tags">Sort by tags</option>
       <option value="distance">Sort by distance to stop</option>
+      <option value="distance-home">Sort by distance to home</option>
       <option value="name">Sort by name</option>
     </select>
   </div>
@@ -280,6 +281,11 @@ const OLD_STORAGE_KEY = 'neighborhood-map-data';
 
 const SEED_PLACES = [{name:"Delilahs",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9323607,lng:-87.658008},{name:"Will's Northwoods",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9373026,lng:-87.659058},{name:"Beermiscuous",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9328491,lng:-87.6594335},{name:"Four Shadows",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9323137,lng:-87.6687497},{name:"Side Street Saloon",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9344422,lng:-87.6658588},{name:"Red Lion Pub",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.926315,lng:-87.650437},{name:"Irish Eyes",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9277108,lng:-87.6516544},{name:"Lily's Bar",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.927639,lng:-87.6515712},{name:"Rose's Lounge",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9301722,lng:-87.6555886},{name:"Kirkwood",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9354712,lng:-87.6542734},{name:"Broken Barrell",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.928522,lng:-87.6636322},{name:"Bird's Nest",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9272209,lng:-87.6635035},{name:"Liar's Club",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.925056,lng:-87.6706744},{name:"Southport Betty's",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9342053,lng:-87.6637479},{name:"Augies",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.928653,lng:-87.6715997},{name:"Vaughan's Pub",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9350285,lng:-87.6538123},{name:"Lincoln Taproom",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9364203,lng:-87.66431},{name:"Olive Black",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9367954,lng:-87.6649886},{name:"George Street Pub",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9344164,lng:-87.649244},{name:"Harrigan's",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9332827,lng:-87.6491648},{name:"Clover Lincoln Park",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9328165,lng:-87.6495215},{name:"Barcocina",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.934715,lng:-87.6535894},{name:"Love Street",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9287466,lng:-87.6620551},{name:"Avli Taverna",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9287926,lng:-87.6624029},{name:"The Monkey's Paw",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9278827,lng:-87.6635992},{name:"Farm Bar",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9363595,lng:-87.6613826},{name:"Sal's Trattoria",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9335508,lng:-87.6637693},{name:"Pour Decisions",category:"Date Spot",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9294894,lng:-87.6547364},{name:"Que Rico",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9330081,lng:-87.6637479},{name:"Hotate Sushi",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9326276,lng:-87.6640965},{name:"Southport Taqueria",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9323722,lng:-87.6636942},{name:"Gotham Bagels",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9330308,lng:-87.6589507},{name:"Lou Malnati's",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.929206,lng:-87.653567},{name:"Szechuan Corner",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.934467,lng:-87.66915},{name:"El Presidente",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9286397,lng:-87.6684526},{name:"Sushi Payce",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9250525,lng:-87.6640177},{name:"Royal Highness Zhu",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.924943,lng:-87.6591276},{name:"Nori's Sushi",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.932823,lng:-87.6536044},{name:"Andy's Thai",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.932789,lng:-87.6534328},{name:"Rosati's Pizza",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.932384,lng:-87.6534033},{name:"Zizi's Turkish Cafe",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9333674,lng:-87.6536044},{name:"Tanuki sushi",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9365702,lng:-87.6542077},{name:"Panes Bread Cafe (LUNCH)",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9364685,lng:-87.6541219},{name:"Giordano's",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9402846,lng:-87.655822},{name:"Al's #1 Beef",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9441006,lng:-87.6540195},{name:"S&G Restaurant",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9362946,lng:-87.6641223},{name:"Golden Apple",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9360192,lng:-87.663213},{name:"Rica Arepa",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9348027,lng:-87.6616007},{name:"Mahanakhon Thai",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9347174,lng:-87.66136},{name:"Redhot Cafe",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9377474,lng:-87.6684234},{name:"Taco Maya",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9376576,lng:-87.6682298},{name:"The Art of Pizza",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9371608,lng:-87.6680956},{name:"Breakfast House",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9361786,lng:-87.6681919},{name:"Tutto Fresco",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9343464,lng:-87.6681505},{name:"Jono Sushi",category:"Fancy Dinner",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9298167,lng:-87.6551977}];
 const SEED_HOME = {lat:41.9324622,lng:-87.6594105};
+const HOME_COORDS = {lat:41.9324622,lng:-87.6594105}; // 1213 W Diversey Pkwy
+const STATION_COORDS = {
+  'Diversey': {lat:41.932732,lng:-87.653131},
+  'Fullerton': {lat:41.925269,lng:-87.652796}
+};
 const IMPORT_BATCH_2 = [{name:"Gunny's",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9298795,lng:-87.6552815},{name:"Prost!",category:"Bar",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9284303,lng:-87.6532223},{name:"Pat's Pizza & Ristorante",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9308482,lng:-87.6558444},{name:"Nadu",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275203,lng:-87.6519187},{name:"Taste of China",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275473,lng:-87.6515165},{name:"Verzenay (BRUNCH)",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9275103,lng:-87.6513459},{name:"Happy Burger",category:"Restaurant",address:"",tags:[],status:"want-to-try",scores:{price:0,taste:0,vibes:0},notes:"",lat:41.9269158,lng:-87.6510188}];
 
 const API_BASE = '/api/data';
@@ -413,9 +419,46 @@ async function loadData(){
   }
   if(!data.importedBatches) data.importedBatches = [];
   mergeImportBatch('batch2', IMPORT_BATCH_2);
+  applyStationFix();
+  applyFullertonReassignment();
   await saveData();
   render();
   backfillCoordinates();
+}
+
+const FULLERTON_REASSIGN = ["Bird's Nest","Broken Barrell","Happy Burger","Irish Eyes","Liar's Club","Lily's Bar","Love Street","Nadu","Prost!","Red Lion Pub","Royal Highness Zhu","Sushi Payce","Taste of China","The Monkey's Paw","Verzenay (BRUNCH)","Lincoln Station","Chicago's Dog House"];
+
+function applyFullertonReassignment(){
+  if(data.importedBatches.includes('fullerton-reassign-1')) return;
+  const diversey = data.stops.find(s => s.name === 'Diversey');
+  const fullerton = data.stops.find(s => s.name === 'Fullerton');
+  if(diversey && fullerton){
+    const namesLower = FULLERTON_REASSIGN.map(n => n.trim().toLowerCase());
+    const toMove = diversey.places.filter(p => namesLower.includes(p.name.trim().toLowerCase()));
+    if(toMove.length){
+      diversey.places = diversey.places.filter(p => !namesLower.includes(p.name.trim().toLowerCase()));
+      fullerton.places.push(...toMove);
+    }
+  }
+  data.importedBatches.push('fullerton-reassign-1');
+}
+
+function applyStationFix(){
+  if(data.importedBatches.includes('station-fix-1')) return;
+  const diversey = data.stops.find(s => s.name === 'Diversey');
+  if(diversey){
+    diversey.lat = STATION_COORDS['Diversey'].lat;
+    diversey.lng = STATION_COORDS['Diversey'].lng;
+  }
+  if(!data.stops.find(s => s.name === 'Fullerton')){
+    const fullerton = {
+      id: uid(), name: 'Fullerton',
+      lat: STATION_COORDS['Fullerton'].lat, lng: STATION_COORDS['Fullerton'].lng,
+      places: []
+    };
+    data.stops.push(fullerton);
+  }
+  data.importedBatches.push('station-fix-1');
 }
 
 async function backfillCoordinates(){
@@ -611,10 +654,16 @@ function renderPlace(stop, place){
   const catInfo = CATS[place.category] || CATS['Restaurant'];
 
   let distHtml = '';
-  if(typeof stop.lat === 'number' && typeof place.lat === 'number'){
-    const d = haversine(stop.lat, stop.lng, place.lat, place.lng);
-    distHtml = `<span class="dist-label">${d < 0.1 ? '<0.1' : d.toFixed(1)} mi</span>`;
+  const distParts = [];
+  if(typeof place.lat === 'number'){
+    const dh = haversine(HOME_COORDS.lat, HOME_COORDS.lng, place.lat, place.lng);
+    distParts.push(`<span class="dist-label" title="Distance to home">🏠 ${dh < 0.1 ? '<0.1' : dh.toFixed(1)} mi</span>`);
+    if(typeof stop.lat === 'number'){
+      const ds = haversine(stop.lat, stop.lng, place.lat, place.lng);
+      distParts.push(`<span class="dist-label" title="Distance to ${escapeHtml(stop.name)} stop">🚈 ${ds < 0.1 ? '<0.1' : ds.toFixed(1)} mi</span>`);
+    }
   }
+  distHtml = distParts.join(' ');
 
   const catOptions = CAT_ORDER.map(c => `<option value="${c}" ${c===place.category?'selected':''}>${c}</option>`).join('');
 
@@ -680,6 +729,11 @@ function sortPlaces(places, sortMode, stop){
     case 'distance': return arr.sort((a,b) => {
       const da = (typeof stop.lat === 'number' && typeof a.lat === 'number') ? haversine(stop.lat, stop.lng, a.lat, a.lng) : Infinity;
       const db = (typeof stop.lat === 'number' && typeof b.lat === 'number') ? haversine(stop.lat, stop.lng, b.lat, b.lng) : Infinity;
+      return da - db;
+    });
+    case 'distance-home': return arr.sort((a,b) => {
+      const da = typeof a.lat === 'number' ? haversine(HOME_COORDS.lat, HOME_COORDS.lng, a.lat, a.lng) : Infinity;
+      const db = typeof b.lat === 'number' ? haversine(HOME_COORDS.lat, HOME_COORDS.lng, b.lat, b.lng) : Infinity;
       return da - db;
     });
     default: return arr;
